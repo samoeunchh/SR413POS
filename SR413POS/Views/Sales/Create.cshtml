@@ -40,6 +40,7 @@
                     <th>Action</th>
                 </tr>
             </thead>
+            <tbody></tbody>
         </table>
     </div>
 </div>
@@ -96,7 +97,7 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         var i = 0;
-        var total = 0;
+        //var total = 0;
         $(document).ready(function () {
             $("#search").keydown(function (e) {
                 if (e.keyCode === 13) {
@@ -108,15 +109,15 @@
                             var row = "<tr><td>" + response.productName + "</td>";
                             row += "<td><select class='form-control' name='unit[]' id='unit"+ i +"'>" + options + "</select></td>";
                             row += "<td>" + response.price + "</td>";
-                            row += "<td><input type='number' class='form-control' name='qty[]' value='1'/></td>";
+                            row += "<td><input type='number' class='form-control qty' name='qty[]' value='1'/></td>";
                             row += "<td>" + response.price + "</td>";
-                            row += "<td><input type='number' class='form-control' name='dis[]' value='0'/></td>";
+                            row += "<td><input type='number' class='form-control discount' name='dis[]' value='0'/></td>";
                             row += "<td>" + response.price + "</td>";
-                            row += "<td><button class='btn btn-danger'><i class='fa fa-trash'></i></button></td></tr>";
+                            row += "<td><button class='btn btn-danger remove'><i class='fa fa-trash'></i></button></td></tr>";
                             $("#tsale").append(row);
-                            total += response.price;
-                            $("#Total").val(total);
-                            $("#GrandTotal").val(total);
+                            //total += response.price;
+                            
+                            Calculation();
                             $("#search").val("");
                             $("#unit" + i).val(response.unitId);
                             i++;
@@ -126,6 +127,41 @@
                     });
                 }
             });
+            $("#Discount").keyup(function () {
+                Calculation();
+            });
+            $("#Receive").keyup(function () {
+                var grandTotal = $("#GrandTotal").val();
+                var receive = $("#Receive").val();
+                $("#Change").val(receive - grandTotal);
+            });
         });
+        $(document).on("click", ".remove", function () {
+            $(this).closest("tr").remove();
+            Calculation();
+        });
+        $(document).on("blur", ".qty", function () {
+            Calculation();
+        });
+        $(document).on("blur", ".discount", function () {
+            Calculation();
+        });
+        function Calculation() {
+            var total = 0;
+            $("#tsale > tbody > tr").each(function (i) {
+                var price = $(this).find("td:eq(2)").html();
+                var qty = document.getElementsByName("qty[]")[i].value;
+                var amount = price * qty;
+                var dis = document.getElementsByName("dis[]")[i].value;
+                var discountAmount = (amount * dis) / 100;
+                $(this).find("td:eq(4)").html(amount);
+                $(this).find("td:eq(6)").html(amount - discountAmount);
+                total += amount - discountAmount;
+            });
+            $("#Total").val(total);
+            var discount = $("#Discount").val();
+            var disAmount = (total * discount) / 100;
+            $("#GrandTotal").val(total - disAmount);
+        }
     </script>
 }
